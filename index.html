@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Caderneta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<style>
+  :root{
+    --paper: #c7d5bd;
+    --paper-alt: #bccbb1;
+    --paper-dark: #aebda3;
+    --rule: #a8433d;
+    --rule-soft: rgba(168,67,61,0.35);
+    --ink: #263326;
+    --ink-soft: #55614f;
+    --gold: #a9823f;
+    --gold-dark: #8a6a2f;
+    --paid: #3f6b4a;
+    --paid-bg: #dce8d3;
+    --pending: #a8433d;
+    --pending-bg: #ecd9c9;
+    --shadow: rgba(38,51,38,0.25);
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background: var(--paper-dark);
+    background-image:
+      linear-gradient(var(--paper) 0%, var(--paper) 100%);
+    min-height:100vh;
+    font-family:'Inter',sans-serif;
+    color: var(--ink);
+    padding-bottom: 100px;
+  }
+
+  /* faux ledger binding margin */
+  .binding{
+    position:fixed;
+    top:0; bottom:0; left:28px;
+    width:2px;
+    background: var(--rule-soft);
+  }
+  .binding::before{
+    content:'';
+    position:fixed;
+    top:0; bottom:0; left:34px;
+    width:1px;
+    background: var(--rule-soft);
+  }
+
+  header{
+    padding: 34px 24px 20px 52px;
+    position: relative;
+  }
+  header .kicker{
+    font-family:'Courier Prime', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  h1{
+    font-family:'Special Elite', cursive;
+    font-size: 34px;
+    margin: 0;
+    color: var(--ink);
+    letter-spacing: 0.5px;
+  }
+  header .subtitle{
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  .stats{
+    display:flex;
+    gap: 10px;
+    padding: 4px 24px 20px 52px;
+    overflow-x:auto;
+  }
+  .stat-card{
+    background: rgba(255,255,255,0.35);
+    border: 1px solid rgba(38,51,38,0.15);
+    border-radius: 6px;
+    padding: 12px 16px;
+    min-width: 128px;
+    flex: 1;
+  }
+  .stat-card .label{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .stat-card .value{
+    font-family:'Courier Prime', monospace;
+    font-weight: 700;
+    font-size: 19px;
+  }
+  .stat-card.pendente .value{ color: var(--pending); }
+  .stat-card.recebido .value{ color: var(--paid); }
+
+  main{
+    padding: 8px 20px 8px 52px;
+  }
+
+  .list{
+    display:flex;
+    flex-direction:column;
+  }
+
+  .row{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    padding: 16px 8px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .row:first-child{ border-top: 1px solid var(--rule-soft); }
+
+  .row .avatar{
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #fff8ec;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Special Elite', cursive;
+    font-size: 16px;
+    flex-shrink:0;
+  }
+
+  .row .info{
+    flex: 1;
+    min-width: 0;
+  }
+  .row .name{
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .row .meta{
+    font-family:'Courier Prime', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .stamp{
+    font-family:'Special Elite', cursive;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    border: 2px solid currentColor;
+    border-radius: 4px;
+    text-transform: uppercase;
+    transform: rotate(-6deg);
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+  .stamp.pago{ color: var(--paid); background: var(--paid-bg); }
+  .stamp.pendente{ color: var(--pending); background: var(--pending-bg); }
+
+  .row .actions{
+    display:flex;
+    gap: 2px;
+    flex-shrink:0;
+  }
+  .icon-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color: var(--ink-soft);
+    transition: background 0.15s;
+  }
+  .icon-btn:hover{ background: rgba(38,51,38,0.1); }
+  .icon-btn .material-symbols-outlined{ font-size: 20px; }
+  .icon-btn.toggle-pago{ color: var(--paid); }
+  .icon-btn.toggle-pendente{ color: var(--pending); }
+  .icon-btn.danger:hover{ background: rgba(168,67,61,0.15); color: var(--rule); }
+
+  .empty{
+    text-align:center;
+    padding: 70px 24px;
+    color: var(--ink-soft);
+  }
+  .empty .material-symbols-outlined{
+    font-size: 44px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .empty h3{
+    font-family:'Special Elite', cursive;
+    font-weight: normal;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .empty p{ font-size: 14px; margin:0; }
+
+  .fab{
+    position: fixed;
+    bottom: 26px;
+    right: 22px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #fff8ec;
+    border: none;
+    box-shadow: 0 6px 16px var(--shadow);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  .fab .material-symbols-outlined{ font-size: 28px; }
+  .fab:active{ transform: scale(0.95); }
+
+  /* modal */
+  .overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(20,26,20,0.5);
+    display:none;
+    align-items: flex-end;
+    justify-content:center;
+    z-index: 50;
+  }
+  .overlay.open{ display:flex; }
+
+  .sheet{
+    background: #f4efe2;
+    width: 100%;
+    max-width: 440px;
+    border-radius: 16px 16px 0 0;
+    padding: 22px 22px 28px;
+    box-shadow: 0 -8px 24px var(--shadow);
+    animation: slideup 0.2s ease-out;
+  }
+  @keyframes slideup{ from{ transform: translateY(20px); opacity:0;} to{ transform: translateY(0); opacity:1;} }
+
+  .sheet h2{
+    font-family:'Special Elite', cursive;
+    font-weight: normal;
+    font-size: 22px;
+    margin: 0 0 18px;
+    color: var(--ink);
+  }
+  .field{ margin-bottom: 14px; }
+  .field label{
+    display:block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .field input{
+    width:100%;
+    padding: 11px 12px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(38,51,38,0.25);
+    background: #fff;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+  }
+  .field input:focus{
+    outline: none;
+    border-color: var(--gold);
+  }
+  .field.currency .prefix-wrap{ position:relative; }
+  .field.currency input{ padding-left: 32px; font-family:'Courier Prime', monospace; }
+  .field.currency .prefix{
+    position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    color: var(--ink-soft); font-family:'Courier Prime', monospace; font-size:15px;
+  }
+
+  .sheet-actions{
+    display:flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .btn{
+    flex:1;
+    padding: 13px;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn.primary{ background: var(--gold); color: #fff8ec; }
+  .btn.secondary{ background: transparent; color: var(--ink-soft); border: 1.5px solid rgba(38,51,38,0.2); }
+  .btn.danger{ background: var(--rule); color: #fff8ec; }
+
+  .delete-confirm{ display:none; }
+  .delete-confirm.open{ display:block; }
+</style>
+</head>
+<body>
+
+<div class="binding"></div>
+
+<header>
+  <div class="kicker" id="mesLabel">—</div>
+  <h1>Caderneta</h1>
+  <div class="subtitle">quem me deve, quem já pagou</div>
+</header>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="label">Mensal</div>
+    <div class="value" id="statTotal">R$ 0,00</div>
+  </div>
+  <div class="stat-card recebido">
+    <div class="label">Recebido</div>
+    <div class="value" id="statRecebido">R$ 0,00</div>
+  </div>
+  <div class="stat-card pendente">
+    <div class="label">Pendente</div>
+    <div class="value" id="statPendente">R$ 0,00</div>
+  </div>
+</div>
+
+<main>
+  <div class="list" id="list"></div>
+  <div class="empty" id="empty" style="display:none;">
+    <span class="material-symbols-outlined">menu_book</span>
+    <h3>Caderneta vazia</h3>
+    <p>Toque no + para anotar a primeira pessoa.</p>
+  </div>
+</main>
+
+<button class="fab" id="btnAdd" aria-label="Adicionar pessoa">
+  <span class="material-symbols-outlined">add</span>
+</button>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2 id="sheetTitle">Nova pessoa</h2>
+    <div class="field">
+      <label for="fName">Nome</label>
+      <input type="text" id="fName" placeholder="Ex: Ricardo (vizinho)">
+    </div>
+    <div class="field currency">
+      <label for="fValor">Valor mensal</label>
+      <div class="prefix-wrap">
+        <span class="prefix">R$</span>
+        <input type="number" id="fValor" placeholder="0,00" step="0.01" min="0" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field">
+      <label for="fDia">Dia do vencimento (opcional)</label>
+      <input type="number" id="fDia" placeholder="Ex: 10" min="1" max="31">
+    </div>
+    <div class="sheet-actions">
+      <button class="btn secondary" id="btnCancel">Cancelar</button>
+      <button class="btn primary" id="btnSave">Salvar</button>
+    </div>
+    <div class="delete-confirm" id="deleteBlock" style="margin-top:16px; border-top:1px solid rgba(38,51,38,0.15); padding-top:16px;">
+      <button class="btn danger" id="btnDelete" style="width:100%;">Remover pessoa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'caderneta_pessoas';
+const MONTH_KEY = 'caderneta_mes';
+
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function currentMonthKey(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function formatMoney(v){
+  return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+}
+
+let pessoas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let editingId = null;
+
+function checkMonthRollover(){
+  const stored = localStorage.getItem(MONTH_KEY);
+  const now = currentMonthKey();
+  if (stored && stored !== now){
+    pessoas.forEach(p => {
+      if (p.status === 'pendente'){
+        // mês virou sem pagar: soma na dívida acumulada
+        p.divida = (p.divida || 0) + p.valor;
+      }
+      p.status = 'pendente';
+    });
+    save();
+  }
+  localStorage.setItem(MONTH_KEY, now);
+  const d = new Date();
+  document.getElementById('mesLabel').textContent = `${MESES[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pessoas));
+  render();
+}
+
+function openModal(person = null){
+  editingId = person ? person.id : null;
+  document.getElementById('sheetTitle').textContent = person ? 'Editar pessoa' : 'Nova pessoa';
+  document.getElementById('fName').value = person ? person.nome : '';
+  document.getElementById('fValor').value = person ? person.valor : '';
+  document.getElementById('fDia').value = person && person.dia ? person.dia : '';
+  document.getElementById('deleteBlock').classList.toggle('open', !!person);
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('fName').focus();
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  editingId = null;
+}
+
+document.getElementById('btnAdd').addEventListener('click', () => openModal());
+document.getElementById('btnCancel').addEventListener('click', closeModal);
+document.getElementById('overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'overlay') closeModal();
+});
+
+document.getElementById('btnSave').addEventListener('click', () => {
+  const nome = document.getElementById('fName').value.trim();
+  const valor = parseFloat(document.getElementById('fValor').value);
+  const dia = parseInt(document.getElementById('fDia').value) || null;
+
+  if (!nome || isNaN(valor) || valor <= 0){
+    alert('Preencha o nome e um valor mensal válido.');
+    return;
+  }
+
+  if (editingId){
+    const p = pessoas.find(p => p.id === editingId);
+    p.nome = nome; p.valor = valor; p.dia = dia;
+  } else {
+    pessoas.push({
+      id: Date.now().toString(),
+      nome, valor, dia,
+      status: 'pendente',
+      totalRecebido: 0,
+      divida: 0
+    });
+  }
+  save();
+  closeModal();
+});
+
+document.getElementById('btnDelete').addEventListener('click', () => {
+  if (!editingId) return;
+  if (confirm('Remover esta pessoa da caderneta?')){
+    pessoas = pessoas.filter(p => p.id !== editingId);
+    save();
+    closeModal();
+  }
+});
+
+function toggleStatus(id){
+  const p = pessoas.find(p => p.id === id);
+  if (p.status === 'pendente'){
+    p.status = 'pago';
+    p.totalRecebido = (p.totalRecebido || 0) + p.valor;
+  } else {
+    p.status = 'pendente';
+  }
+  save();
+}
+
+function render(){
+  const list = document.getElementById('list');
+  const empty = document.getElementById('empty');
+  list.innerHTML = '';
+
+  if (pessoas.length === 0){
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+  }
+
+  let total = 0, recebido = 0, pendente = 0;
+
+  pessoas
+    .slice()
+    .sort((a,b) => a.nome.localeCompare(b.nome))
+    .forEach(p => {
+      total += p.valor;
+      if (p.status === 'pago') recebido += p.valor; else pendente += p.valor;
+
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const initials = p.nome.trim().slice(0,2).toUpperCase();
+      const dividaTxt = p.divida > 0 ? ` · dívida anterior ${formatMoney(p.divida)}` : '';
+
+      row.innerHTML = `
+        <div class="avatar">${initials}</div>
+        <div class="info">
+          <div class="name">${escapeHtml(p.nome)}</div>
+          <div class="meta">${formatMoney(p.valor)}/mês${p.dia ? ' · vence dia '+p.dia : ''}${dividaTxt}</div>
+        </div>
+        <div class="stamp ${p.status}">${p.status === 'pago' ? 'Pago' : 'Pendente'}</div>
+        <div class="actions">
+          <button class="icon-btn ${p.status === 'pendente' ? 'toggle-pago' : 'toggle-pendente'}" title="${p.status === 'pendente' ? 'Marcar como pago' : 'Marcar como pendente'}" data-action="toggle" data-id="${p.id}">
+            <span class="material-symbols-outlined">${p.status === 'pendente' ? 'check_circle' : 'undo'}</span>
+          </button>
+          <button class="icon-btn" title="Editar" data-action="edit" data-id="${p.id}">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+  document.getElementById('statTotal').textContent = formatMoney(total);
+  document.getElementById('statRecebido').textContent = formatMoney(recebido);
+  document.getElementById('statPendente').textContent = formatMoney(pendente);
+
+  list.querySelectorAll('[data-action="toggle"]').forEach(btn => {
+    btn.addEventListener('click', () => toggleStatus(btn.dataset.id));
+  });
+  list.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = pessoas.find(p => p.id === btn.dataset.id);
+      openModal(p);
+    });
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+checkMonthRollover();
+render();
+</script>
+
+</body>
+</html>
