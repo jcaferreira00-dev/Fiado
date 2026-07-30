@@ -7,146 +7,216 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <style>
   :root{
-    --paper: #c7d5bd;
-    --paper-alt: #bccbb1;
-    --paper-dark: #aebda3;
-    --rule: #a8433d;
-    --rule-soft: rgba(168,67,61,0.35);
-    --ink: #263326;
-    --ink-soft: #55614f;
-    --gold: #a9823f;
-    --gold-dark: #8a6a2f;
-    --paid: #3f6b4a;
-    --paid-bg: #dce8d3;
-    --pending: #a8433d;
-    --pending-bg: #ecd9c9;
-    --shadow: rgba(38,51,38,0.25);
+    --leather: #2d1b14;
+    --leather-2: #4a2c1d;
+    --leather-hi: #6b4028;
+    --gold: #c9a24b;
+    --gold-dim: #a9823f;
+
+    --paper: #cddbc0;
+    --paper-2: #c3d2b5;
+    --line-h: rgba(63,84,120,0.28);
+    --rule-red: #b23b34;
+    --ink: #26331f;
+    --ink-soft: #57614d;
+
+    --paid: #2f6b45;
+    --paid-bg: #d7e8cd;
+    --pending: #b23b34;
+    --pending-bg: #f0dcc9;
+    --shadow: rgba(20,15,10,0.35);
   }
 
   *{box-sizing:border-box;}
-
+  html,body{ height:100%; }
   body{
     margin:0;
-    background: var(--paper-dark);
-    background-image:
-      linear-gradient(var(--paper) 0%, var(--paper) 100%);
-    min-height:100vh;
+    background: #1c110c;
     font-family:'Inter',sans-serif;
     color: var(--ink);
-    padding-bottom: 100px;
+    overflow-x:hidden;
   }
 
-  /* faux ledger binding margin */
-  .binding{
-    position:fixed;
-    top:0; bottom:0; left:28px;
-    width:2px;
-    background: var(--rule-soft);
+  /* ============ COVER ============ */
+  #coverWrap{
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    perspective: 1800px;
   }
-  .binding::before{
+  #cover{
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 20%, var(--leather-hi) 0%, transparent 55%),
+      linear-gradient(155deg, var(--leather-2) 0%, var(--leather) 70%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    cursor:pointer;
+    transform-origin: left center;
+    transition: transform 0.85s cubic-bezier(.6,0,.35,1), opacity 0.85s ease;
+    box-shadow: 8px 0 30px var(--shadow);
+  }
+  #cover::before{
     content:'';
-    position:fixed;
-    top:0; bottom:0; left:34px;
+    position:absolute; inset:14px;
+    border: 1.5px solid rgba(201,162,75,0.35);
+    border-radius: 2px;
+    pointer-events:none;
+  }
+  #cover .ribbon{
+    position:absolute;
+    top:0; right: 38px;
+    width: 22px; height: 90px;
+    background: linear-gradient(180deg, var(--rule-red), #7c221e);
+    clip-path: polygon(0 0, 100% 0, 100% 82%, 50% 100%, 0 82%);
+    box-shadow: -2px 2px 6px rgba(0,0,0,0.35);
+  }
+  #cover h1{
+    font-family:'Special Elite', cursive;
+    font-size: 42px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin: 0;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.4), 0 0 18px rgba(201,162,75,0.25);
+  }
+  #cover .rule{
+    width: 70px; height: 2px;
+    background: var(--gold-dim);
+    margin: 14px auto;
+    opacity: 0.7;
+  }
+  #cover p{
+    font-family:'Courier Prime', monospace;
+    color: rgba(230,215,190,0.75);
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin: 0 0 44px;
+  }
+  #cover .tap-hint{
+    font-family:'Inter',sans-serif;
+    font-size: 12px;
+    color: rgba(230,215,190,0.55);
+    letter-spacing: 1px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
+
+  #coverWrap.opening #cover{
+    transform: rotateY(-108deg);
+    opacity: 0.4;
+  }
+  #coverWrap.opened{ display:none; }
+
+  /* ============ APP / LEDGER ============ */
+  #app{
+    max-width: 560px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--paper);
+    position: relative;
+    padding-bottom: 40px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.3);
+  }
+
+  /* grain */
+  #app::after{
+    content:'';
+    position:absolute; inset:0;
+    pointer-events:none;
+    opacity: 0.05;
+    mix-blend-mode: multiply;
+    background-image:
+      radial-gradient(circle at 15% 25%, #000 0.5px, transparent 0.5px),
+      radial-gradient(circle at 65% 60%, #000 0.5px, transparent 0.5px),
+      radial-gradient(circle at 40% 85%, #000 0.5px, transparent 0.5px),
+      radial-gradient(circle at 85% 15%, #000 0.5px, transparent 0.5px);
+    background-size: 60px 60px, 70px 70px, 55px 55px, 65px 65px;
+  }
+
+  /* dog-ear */
+  .dogear{
+    position:absolute; top:0; right:0;
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, transparent 50%, var(--paper-2) 50%);
+    box-shadow: -2px 2px 4px rgba(0,0,0,0.15);
+  }
+
+  /* margin rule (like ledger's date column line) */
+  .margin-rule{
+    position:absolute;
+    top: 0; bottom: 0; left: 58px;
+    width: 2px;
+    background: var(--rule-red);
+    opacity: 0.55;
+  }
+  .margin-rule::after{
+    content:'';
+    position:absolute; top:0; bottom:0; left: 5px;
     width:1px;
-    background: var(--rule-soft);
+    background: var(--rule-red);
+    opacity: 0.3;
   }
 
   header{
-    padding: 34px 24px 20px 52px;
+    padding: 28px 22px 18px 74px;
     position: relative;
   }
-  header .kicker{
+  header .folio{
     font-family:'Courier Prime', monospace;
-    font-size: 12px;
-    letter-spacing: 3px;
+    font-size: 11px;
     color: var(--ink-soft);
+    letter-spacing: 2px;
     text-transform: uppercase;
-    margin-bottom: 6px;
   }
-  h1{
+  header h2{
     font-family:'Special Elite', cursive;
-    font-size: 34px;
-    margin: 0;
+    font-size: 26px;
+    margin: 4px 0 2px;
     color: var(--ink);
-    letter-spacing: 0.5px;
   }
   header .subtitle{
-    font-size: 14px;
+    font-size: 13px;
     color: var(--ink-soft);
-    margin-top: 4px;
   }
 
-  .stats{
-    display:flex;
-    gap: 10px;
-    padding: 4px 24px 20px 52px;
-    overflow-x:auto;
-  }
-  .stat-card{
-    background: rgba(255,255,255,0.35);
-    border: 1px solid rgba(38,51,38,0.15);
-    border-radius: 6px;
-    padding: 12px 16px;
-    min-width: 128px;
-    flex: 1;
-  }
-  .stat-card .label{
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--ink-soft);
-    margin-bottom: 4px;
-  }
-  .stat-card .value{
-    font-family:'Courier Prime', monospace;
-    font-weight: 700;
-    font-size: 19px;
-  }
-  .stat-card.pendente .value{ color: var(--pending); }
-  .stat-card.recebido .value{ color: var(--paid); }
-
-  main{
-    padding: 8px 20px 8px 52px;
-  }
+  main{ position:relative; padding: 4px 20px 10px 74px; }
 
   .list{
-    display:flex;
-    flex-direction:column;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 63px,
+      var(--line-h) 64px
+    );
   }
 
   .row{
     position:relative;
     display:flex;
     align-items:center;
-    gap: 12px;
-    padding: 16px 8px;
-    border-bottom: 1px solid var(--rule-soft);
+    gap: 10px;
+    min-height: 64px;
+    padding: 8px 4px;
   }
-  .row:first-child{ border-top: 1px solid var(--rule-soft); }
 
-  .row .avatar{
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: var(--gold);
-    color: #fff8ec;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-family:'Special Elite', cursive;
-    font-size: 16px;
+  .ink-num{
+    font-family:'Courier Prime', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    width: 22px;
     flex-shrink:0;
+    opacity: 0.6;
   }
 
-  .row .info{
-    flex: 1;
-    min-width: 0;
-  }
-  .row .name{
+  .info{ flex:1; min-width:0; }
+  .name{
     font-weight: 600;
     font-size: 15px;
     color: var(--ink);
@@ -154,332 +224,218 @@
     overflow:hidden;
     text-overflow:ellipsis;
   }
-  .row .meta{
+  .meta{
     font-family:'Courier Prime', monospace;
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--ink-soft);
     margin-top: 2px;
   }
 
+  .status-zone{
+    flex-shrink:0;
+    width: 78px;
+    display:flex;
+    justify-content:center;
+  }
+  .pendente-txt{
+    font-family:'Courier Prime', monospace;
+    font-size: 11px;
+    color: var(--pending);
+    border-bottom: 1px dashed var(--pending);
+    padding-bottom: 1px;
+  }
+
   .stamp{
     font-family:'Special Elite', cursive;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 1.5px;
-    padding: 4px 10px;
-    border: 2px solid currentColor;
-    border-radius: 4px;
+    padding: 5px 9px;
+    border: 2.5px solid var(--paid);
+    border-radius: 5px 8px 6px 9px;
+    color: var(--paid);
     text-transform: uppercase;
-    transform: rotate(-6deg);
-    flex-shrink:0;
-    white-space:nowrap;
+    transform: rotate(-9deg);
+    position: relative;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(47,107,69,0.12) 0%, transparent 45%),
+      radial-gradient(circle at 70% 65%, rgba(47,107,69,0.1) 0%, transparent 40%);
+    animation: stampIn 0.4s cubic-bezier(.2,1.5,.4,1);
   }
-  .stamp.pago{ color: var(--paid); background: var(--paid-bg); }
-  .stamp.pendente{ color: var(--pending); background: var(--pending-bg); }
+  @keyframes stampIn{
+    0%{ transform: rotate(-9deg) scale(2.6); opacity: 0; }
+    60%{ transform: rotate(-9deg) scale(0.92); opacity: 1; }
+    100%{ transform: rotate(-9deg) scale(1); opacity: 1; }
+  }
 
-  .row .actions{
-    display:flex;
-    gap: 2px;
-    flex-shrink:0;
-  }
+  .actions{ display:flex; gap:0; flex-shrink:0; }
   .icon-btn{
-    background:none;
-    border:none;
-    cursor:pointer;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    background:none; border:none; cursor:pointer;
+    width: 32px; height: 32px; border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
     color: var(--ink-soft);
-    transition: background 0.15s;
   }
-  .icon-btn:hover{ background: rgba(38,51,38,0.1); }
-  .icon-btn .material-symbols-outlined{ font-size: 20px; }
+  .icon-btn:active{ background: rgba(38,51,38,0.12); }
+  .icon-btn .material-symbols-outlined{ font-size: 19px; }
   .icon-btn.toggle-pago{ color: var(--paid); }
   .icon-btn.toggle-pendente{ color: var(--pending); }
-  .icon-btn.danger:hover{ background: rgba(168,67,61,0.15); color: var(--rule); }
+
+  /* edit row */
+  .row-edit{
+    flex-direction:column;
+    align-items:stretch;
+    background: rgba(255,255,255,0.28);
+    border-radius: 8px;
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .edit-fields{ display:flex; flex-direction:column; gap:10px; width:100%; }
+  .ledger-input{
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid rgba(38,51,38,0.35);
+    font-family:'Courier Prime', monospace;
+    font-size: 15px;
+    color: var(--ink);
+    padding: 5px 2px;
+    width: 100%;
+  }
+  .ledger-input:focus{ outline:none; border-bottom-color: var(--gold-dim); }
+  .ledger-input.name-input{ font-family:'Inter',sans-serif; font-weight:600; font-size:16px; }
+  .edit-line-2{ display:flex; gap: 14px; }
+  .edit-line-2 .grp{ display:flex; align-items:center; gap:6px; flex:1; }
+  .edit-line-2 label{ font-size:11px; color: var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; flex-shrink:0; }
+  .edit-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:2px; }
+  .edit-actions button{
+    border:none; border-radius:6px; padding: 8px 14px;
+    font-size: 13px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-cancel{ background:transparent; color: var(--ink-soft); }
+  .btn-delete{ background: rgba(178,59,52,0.14); color: var(--rule-red); }
+  .btn-save{ background: var(--gold-dim); color: #fff8ec; }
+
+  /* add trigger row */
+  .row-add{
+    display:flex; align-items:center; gap:8px;
+    color: var(--gold-dim);
+    font-family:'Inter',sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor:pointer;
+    padding: 14px 4px;
+    border-top: 1px dashed rgba(169,130,63,0.4);
+    margin-top: 2px;
+  }
+  .row-add .material-symbols-outlined{ font-size: 20px; }
+
+  /* totals */
+  .totals{
+    margin: 22px 4px 0;
+    padding-top: 10px;
+    border-top: 1.5px solid var(--ink);
+    border-bottom: 4px double var(--ink);
+    padding-bottom: 12px;
+  }
+  .totals .trow{
+    display:flex; justify-content:space-between;
+    font-family:'Courier Prime', monospace;
+    font-size: 13.5px;
+    padding: 3px 0;
+    color: var(--ink-soft);
+  }
+  .totals .trow.saldo{
+    font-weight:700; color: var(--ink); font-size: 15px;
+    margin-top: 4px;
+  }
+  .totals .trow span:last-child{ font-weight:700; }
+  .totals .trow.pendente-row span:last-child{ color: var(--pending); }
+  .totals .trow.recebido-row span:last-child{ color: var(--paid); }
 
   .empty{
     text-align:center;
-    padding: 70px 24px;
+    padding: 50px 10px 30px;
     color: var(--ink-soft);
   }
-  .empty .material-symbols-outlined{
-    font-size: 44px;
-    color: var(--gold);
-    margin-bottom: 10px;
-  }
-  .empty h3{
-    font-family:'Special Elite', cursive;
-    font-weight: normal;
-    margin: 0 0 6px;
-    color: var(--ink);
-  }
-  .empty p{ font-size: 14px; margin:0; }
-
-  .fab{
-    position: fixed;
-    bottom: 26px;
-    right: 22px;
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: var(--gold);
-    color: #fff8ec;
-    border: none;
-    box-shadow: 0 6px 16px var(--shadow);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-  }
-  .fab .material-symbols-outlined{ font-size: 28px; }
-  .fab:active{ transform: scale(0.95); }
-
-  /* modal */
-  .overlay{
-    position: fixed;
-    inset: 0;
-    background: rgba(20,26,20,0.5);
-    display:none;
-    align-items: flex-end;
-    justify-content:center;
-    z-index: 50;
-  }
-  .overlay.open{ display:flex; }
-
-  .sheet{
-    background: #f4efe2;
-    width: 100%;
-    max-width: 440px;
-    border-radius: 16px 16px 0 0;
-    padding: 22px 22px 28px;
-    box-shadow: 0 -8px 24px var(--shadow);
-    animation: slideup 0.2s ease-out;
-  }
-  @keyframes slideup{ from{ transform: translateY(20px); opacity:0;} to{ transform: translateY(0); opacity:1;} }
-
-  .sheet h2{
-    font-family:'Special Elite', cursive;
-    font-weight: normal;
-    font-size: 22px;
-    margin: 0 0 18px;
-    color: var(--ink);
-  }
-  .field{ margin-bottom: 14px; }
-  .field label{
-    display:block;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-  }
-  .field input{
-    width:100%;
-    padding: 11px 12px;
-    border-radius: 8px;
-    border: 1.5px solid rgba(38,51,38,0.25);
-    background: #fff;
-    font-size: 15px;
-    font-family: 'Inter', sans-serif;
-    color: var(--ink);
-  }
-  .field input:focus{
-    outline: none;
-    border-color: var(--gold);
-  }
-  .field.currency .prefix-wrap{ position:relative; }
-  .field.currency input{ padding-left: 32px; font-family:'Courier Prime', monospace; }
-  .field.currency .prefix{
-    position:absolute; left:12px; top:50%; transform:translateY(-50%);
-    color: var(--ink-soft); font-family:'Courier Prime', monospace; font-size:15px;
-  }
-
-  .sheet-actions{
-    display:flex;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  .btn{
-    flex:1;
-    padding: 13px;
-    border-radius: 8px;
-    border: none;
-    font-size: 15px;
-    font-weight: 600;
-    cursor:pointer;
-    font-family:'Inter',sans-serif;
-  }
-  .btn.primary{ background: var(--gold); color: #fff8ec; }
-  .btn.secondary{ background: transparent; color: var(--ink-soft); border: 1.5px solid rgba(38,51,38,0.2); }
-  .btn.danger{ background: var(--rule); color: #fff8ec; }
-
-  .delete-confirm{ display:none; }
-  .delete-confirm.open{ display:block; }
+  .empty .material-symbols-outlined{ font-size: 40px; color: var(--gold-dim); margin-bottom:8px; }
+  .empty h3{ font-family:'Special Elite', cursive; font-weight:normal; margin:0 0 4px; color:var(--ink); }
+  .empty p{ font-size:13px; margin:0; }
 </style>
 </head>
 <body>
 
-<div class="binding"></div>
-
-<header>
-  <div class="kicker" id="mesLabel">—</div>
-  <h1>Caderneta</h1>
-  <div class="subtitle">quem me deve, quem já pagou</div>
-</header>
-
-<div class="stats">
-  <div class="stat-card">
-    <div class="label">Mensal</div>
-    <div class="value" id="statTotal">R$ 0,00</div>
-  </div>
-  <div class="stat-card recebido">
-    <div class="label">Recebido</div>
-    <div class="value" id="statRecebido">R$ 0,00</div>
-  </div>
-  <div class="stat-card pendente">
-    <div class="label">Pendente</div>
-    <div class="value" id="statPendente">R$ 0,00</div>
+<div id="coverWrap">
+  <div id="cover">
+    <div class="ribbon"></div>
+    <h1>Caderneta</h1>
+    <div class="rule"></div>
+    <p>registro de quem me deve</p>
+    <div class="tap-hint">toque para abrir</div>
   </div>
 </div>
 
-<main>
-  <div class="list" id="list"></div>
-  <div class="empty" id="empty" style="display:none;">
-    <span class="material-symbols-outlined">menu_book</span>
-    <h3>Caderneta vazia</h3>
-    <p>Toque no + para anotar a primeira pessoa.</p>
-  </div>
-</main>
+<div id="app">
+  <div class="dogear"></div>
+  <div class="margin-rule"></div>
 
-<button class="fab" id="btnAdd" aria-label="Adicionar pessoa">
-  <span class="material-symbols-outlined">add</span>
-</button>
+  <header>
+    <div class="folio" id="folio">Fl. 001</div>
+    <h2 id="mesLabel">—</h2>
+    <div class="subtitle">quem me deve, quem já pagou</div>
+  </header>
 
-<div class="overlay" id="overlay">
-  <div class="sheet">
-    <h2 id="sheetTitle">Nova pessoa</h2>
-    <div class="field">
-      <label for="fName">Nome</label>
-      <input type="text" id="fName" placeholder="Ex: Ricardo (vizinho)">
+  <main>
+    <div class="list" id="list"></div>
+    <div class="empty" id="empty" style="display:none;">
+      <span class="material-symbols-outlined">menu_book</span>
+      <h3>Página em branco</h3>
+      <p>Anote a primeira pessoa abaixo.</p>
     </div>
-    <div class="field currency">
-      <label for="fValor">Valor mensal</label>
-      <div class="prefix-wrap">
-        <span class="prefix">R$</span>
-        <input type="number" id="fValor" placeholder="0,00" step="0.01" min="0" inputmode="decimal">
-      </div>
+
+    <div class="totals">
+      <div class="trow recebido-row"><span>Recebido</span><span id="statRecebido">R$ 0,00</span></div>
+      <div class="trow pendente-row"><span>Pendente</span><span id="statPendente">R$ 0,00</span></div>
+      <div class="trow saldo"><span>Total mensal</span><span id="statTotal">R$ 0,00</span></div>
     </div>
-    <div class="field">
-      <label for="fDia">Dia do vencimento (opcional)</label>
-      <input type="number" id="fDia" placeholder="Ex: 10" min="1" max="31">
-    </div>
-    <div class="sheet-actions">
-      <button class="btn secondary" id="btnCancel">Cancelar</button>
-      <button class="btn primary" id="btnSave">Salvar</button>
-    </div>
-    <div class="delete-confirm" id="deleteBlock" style="margin-top:16px; border-top:1px solid rgba(38,51,38,0.15); padding-top:16px;">
-      <button class="btn danger" id="btnDelete" style="width:100%;">Remover pessoa</button>
-    </div>
-  </div>
+  </main>
 </div>
 
 <script>
 const STORAGE_KEY = 'caderneta_pessoas';
 const MONTH_KEY = 'caderneta_mes';
-
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-function currentMonthKey(d = new Date()){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-function formatMoney(v){
-  return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
-}
-
 let pessoas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-let editingId = null;
+let openRowId = null; // null | 'new' | person.id
 
+// ---- Cover open ----
+const coverWrap = document.getElementById('coverWrap');
+document.getElementById('cover').addEventListener('click', openCover);
+function openCover(){
+  coverWrap.classList.add('opening');
+  setTimeout(() => coverWrap.classList.add('opened'), 850);
+}
+
+// ---- Month rollover ----
+function currentMonthKey(d = new Date()){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function checkMonthRollover(){
   const stored = localStorage.getItem(MONTH_KEY);
   const now = currentMonthKey();
   if (stored && stored !== now){
     pessoas.forEach(p => {
-      if (p.status === 'pendente'){
-        // mês virou sem pagar: soma na dívida acumulada
-        p.divida = (p.divida || 0) + p.valor;
-      }
+      if (p.status === 'pendente'){ p.divida = (p.divida || 0) + p.valor; }
       p.status = 'pendente';
     });
-    save();
+    persist();
   }
   localStorage.setItem(MONTH_KEY, now);
   const d = new Date();
   document.getElementById('mesLabel').textContent = `${MESES[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('folio').textContent = `Fl. ${String(d.getMonth()+1).padStart(3,'0')}`;
 }
 
-function save(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pessoas));
-  render();
-}
-
-function openModal(person = null){
-  editingId = person ? person.id : null;
-  document.getElementById('sheetTitle').textContent = person ? 'Editar pessoa' : 'Nova pessoa';
-  document.getElementById('fName').value = person ? person.nome : '';
-  document.getElementById('fValor').value = person ? person.valor : '';
-  document.getElementById('fDia').value = person && person.dia ? person.dia : '';
-  document.getElementById('deleteBlock').classList.toggle('open', !!person);
-  document.getElementById('overlay').classList.add('open');
-  document.getElementById('fName').focus();
-}
-function closeModal(){
-  document.getElementById('overlay').classList.remove('open');
-  editingId = null;
-}
-
-document.getElementById('btnAdd').addEventListener('click', () => openModal());
-document.getElementById('btnCancel').addEventListener('click', closeModal);
-document.getElementById('overlay').addEventListener('click', (e) => {
-  if (e.target.id === 'overlay') closeModal();
-});
-
-document.getElementById('btnSave').addEventListener('click', () => {
-  const nome = document.getElementById('fName').value.trim();
-  const valor = parseFloat(document.getElementById('fValor').value);
-  const dia = parseInt(document.getElementById('fDia').value) || null;
-
-  if (!nome || isNaN(valor) || valor <= 0){
-    alert('Preencha o nome e um valor mensal válido.');
-    return;
-  }
-
-  if (editingId){
-    const p = pessoas.find(p => p.id === editingId);
-    p.nome = nome; p.valor = valor; p.dia = dia;
-  } else {
-    pessoas.push({
-      id: Date.now().toString(),
-      nome, valor, dia,
-      status: 'pendente',
-      totalRecebido: 0,
-      divida: 0
-    });
-  }
-  save();
-  closeModal();
-});
-
-document.getElementById('btnDelete').addEventListener('click', () => {
-  if (!editingId) return;
-  if (confirm('Remover esta pessoa da caderneta?')){
-    pessoas = pessoas.filter(p => p.id !== editingId);
-    save();
-    closeModal();
-  }
-});
+function formatMoney(v){ return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' }); }
+function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(pessoas)); }
+function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
 function toggleStatus(id){
   const p = pessoas.find(p => p.id === id);
@@ -489,73 +445,122 @@ function toggleStatus(id){
   } else {
     p.status = 'pendente';
   }
-  save();
+  persist();
+  render();
+}
+
+function openEdit(id){ openRowId = id; render(); focusForm(); }
+function closeEdit(){ openRowId = null; render(); }
+function focusForm(){
+  setTimeout(() => {
+    const el = document.getElementById('editName');
+    if (el) el.focus();
+  }, 10);
+}
+
+function saveForm(id){
+  const nome = document.getElementById('editName').value.trim();
+  const valor = parseFloat(document.getElementById('editValor').value);
+  const dia = parseInt(document.getElementById('editDia').value) || null;
+
+  if (!nome || isNaN(valor) || valor <= 0){
+    alert('Preencha o nome e um valor mensal válido.');
+    return;
+  }
+
+  if (id === 'new'){
+    pessoas.push({ id: Date.now().toString(), nome, valor, dia, status:'pendente', totalRecebido:0, divida:0 });
+  } else {
+    const p = pessoas.find(p => p.id === id);
+    p.nome = nome; p.valor = valor; p.dia = dia;
+  }
+  persist();
+  openRowId = null;
+  render();
+}
+
+function deleteForm(id){
+  if (!confirm('Remover esta pessoa da caderneta?')) return;
+  pessoas = pessoas.filter(p => p.id !== id);
+  persist();
+  openRowId = null;
+  render();
+}
+
+function rowNormal(p, idx){
+  const dividaTxt = p.divida > 0 ? ` · dívida anterior ${formatMoney(p.divida)}` : '';
+  return `
+    <div class="row" data-id="${p.id}">
+      <div class="ink-num">${String(idx+1).padStart(2,'0')}</div>
+      <div class="info">
+        <div class="name">${escapeHtml(p.nome)}</div>
+        <div class="meta">${formatMoney(p.valor)}/mês${p.dia ? ' · vence dia '+p.dia : ''}${dividaTxt}</div>
+      </div>
+      <div class="status-zone">
+        ${p.status === 'pago' ? '<div class="stamp">Pago</div>' : '<div class="pendente-txt">pendente</div>'}
+      </div>
+      <div class="actions">
+        <button class="icon-btn ${p.status === 'pendente' ? 'toggle-pago' : 'toggle-pendente'}" data-action="toggle" data-id="${p.id}" title="${p.status === 'pendente' ? 'Marcar como pago' : 'Marcar como pendente'}">
+          <span class="material-symbols-outlined">${p.status === 'pendente' ? 'check_circle' : 'undo'}</span>
+        </button>
+        <button class="icon-btn" data-action="edit" data-id="${p.id}" title="Editar">
+          <span class="material-symbols-outlined">edit</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function rowEdit(p){
+  const isNew = p === null;
+  const nome = isNew ? '' : p.nome;
+  const valor = isNew ? '' : p.valor;
+  const dia = isNew ? '' : (p.dia || '');
+  const id = isNew ? 'new' : p.id;
+  return `
+    <div class="row row-edit">
+      <div class="edit-fields">
+        <input class="ledger-input name-input" id="editName" placeholder="Nome da pessoa" value="${escapeHtml(nome)}">
+        <div class="edit-line-2">
+          <div class="grp"><label>R$</label><input class="ledger-input" id="editValor" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" value="${valor}"></div>
+          <div class="grp"><label>Dia</label><input class="ledger-input" id="editDia" type="number" min="1" max="31" placeholder="—" value="${dia}"></div>
+        </div>
+        <div class="edit-actions">
+          <button class="btn-cancel" data-action="cancel">Cancelar</button>
+          ${!isNew ? `<button class="btn-delete" data-action="delete" data-id="${id}">Excluir</button>` : ''}
+          <button class="btn-save" data-action="save" data-id="${id}">Salvar</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function render(){
   const list = document.getElementById('list');
   const empty = document.getElementById('empty');
-  list.innerHTML = '';
+  empty.style.display = pessoas.length === 0 ? 'block' : 'none';
 
-  if (pessoas.length === 0){
-    empty.style.display = 'block';
-  } else {
-    empty.style.display = 'none';
-  }
+  const sorted = pessoas.slice().sort((a,b) => a.nome.localeCompare(b.nome));
+  let html = '';
+  sorted.forEach((p, idx) => {
+    html += (openRowId === p.id) ? rowEdit(p) : rowNormal(p, idx);
+  });
+  html += (openRowId === 'new') ? rowEdit(null) : `<div class="row-add" data-action="new-row"><span class="material-symbols-outlined">add</span>Nova pessoa</div>`;
+  list.innerHTML = html;
 
   let total = 0, recebido = 0, pendente = 0;
-
-  pessoas
-    .slice()
-    .sort((a,b) => a.nome.localeCompare(b.nome))
-    .forEach(p => {
-      total += p.valor;
-      if (p.status === 'pago') recebido += p.valor; else pendente += p.valor;
-
-      const row = document.createElement('div');
-      row.className = 'row';
-
-      const initials = p.nome.trim().slice(0,2).toUpperCase();
-      const dividaTxt = p.divida > 0 ? ` · dívida anterior ${formatMoney(p.divida)}` : '';
-
-      row.innerHTML = `
-        <div class="avatar">${initials}</div>
-        <div class="info">
-          <div class="name">${escapeHtml(p.nome)}</div>
-          <div class="meta">${formatMoney(p.valor)}/mês${p.dia ? ' · vence dia '+p.dia : ''}${dividaTxt}</div>
-        </div>
-        <div class="stamp ${p.status}">${p.status === 'pago' ? 'Pago' : 'Pendente'}</div>
-        <div class="actions">
-          <button class="icon-btn ${p.status === 'pendente' ? 'toggle-pago' : 'toggle-pendente'}" title="${p.status === 'pendente' ? 'Marcar como pago' : 'Marcar como pendente'}" data-action="toggle" data-id="${p.id}">
-            <span class="material-symbols-outlined">${p.status === 'pendente' ? 'check_circle' : 'undo'}</span>
-          </button>
-          <button class="icon-btn" title="Editar" data-action="edit" data-id="${p.id}">
-            <span class="material-symbols-outlined">edit</span>
-          </button>
-        </div>
-      `;
-      list.appendChild(row);
-    });
-
+  pessoas.forEach(p => { total += p.valor; if (p.status === 'pago') recebido += p.valor; else pendente += p.valor; });
   document.getElementById('statTotal').textContent = formatMoney(total);
   document.getElementById('statRecebido').textContent = formatMoney(recebido);
   document.getElementById('statPendente').textContent = formatMoney(pendente);
 
-  list.querySelectorAll('[data-action="toggle"]').forEach(btn => {
-    btn.addEventListener('click', () => toggleStatus(btn.dataset.id));
-  });
-  list.querySelectorAll('[data-action="edit"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const p = pessoas.find(p => p.id === btn.dataset.id);
-      openModal(p);
-    });
-  });
-}
-
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  list.querySelectorAll('[data-action="toggle"]').forEach(b => b.addEventListener('click', () => toggleStatus(b.dataset.id)));
+  list.querySelectorAll('[data-action="edit"]').forEach(b => b.addEventListener('click', () => openEdit(b.dataset.id)));
+  list.querySelectorAll('[data-action="cancel"]').forEach(b => b.addEventListener('click', closeEdit));
+  list.querySelectorAll('[data-action="save"]').forEach(b => b.addEventListener('click', () => saveForm(b.dataset.id)));
+  list.querySelectorAll('[data-action="delete"]').forEach(b => b.addEventListener('click', () => deleteForm(b.dataset.id)));
+  const addRow = list.querySelector('[data-action="new-row"]');
+  if (addRow) addRow.addEventListener('click', () => openEdit('new'));
 }
 
 checkMonthRollover();
