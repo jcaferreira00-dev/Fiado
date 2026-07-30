@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Caderneta</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2d1b14">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -359,6 +365,84 @@
   .empty .material-symbols-outlined{ font-size: 40px; color: var(--gold-dim); margin-bottom:8px; }
   .empty h3{ font-family:'Special Elite', cursive; font-weight:normal; margin:0 0 4px; color:var(--ink); }
   .empty p{ font-size:13px; margin:0; }
+
+  /* ============ CONTA / SYNC ============ */
+  .account-bar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .account-bar .material-symbols-outlined{ font-size:16px; }
+  .account-bar .who{ font-family:'Courier Prime', monospace; }
+  .account-bar button{
+    background:none; border:none; cursor:pointer;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
+    color: var(--gold-dim); padding: 2px 0; text-decoration: underline;
+  }
+  .sync-dot{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--paid);
+    flex-shrink:0;
+  }
+  .sync-dot.off{ background: rgba(87,97,77,0.4); }
+
+  /* ============ AUTH SCREEN ============ */
+  #authScreen{
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(28,17,12,0.72);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  #authScreen.open{ display:flex; }
+  .auth-sheet{
+    width: 100%;
+    max-width: 460px;
+    background: var(--paper);
+    border-radius: 16px 16px 0 0;
+    padding: 26px 24px 30px;
+    position:relative;
+    animation: slideup 0.25s ease-out;
+    background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 46px, var(--line-h) 47px);
+  }
+  @keyframes slideup{ from{ transform: translateY(24px); opacity:0;} to{ transform: translateY(0); opacity:1;} }
+  .auth-sheet h2{
+    font-family:'Special Elite', cursive;
+    font-size: 22px; margin: 0 0 4px; color: var(--ink);
+  }
+  .auth-sheet .sub{ font-size:13px; color: var(--ink-soft); margin-bottom:20px; }
+  .auth-field{ margin-bottom: 16px; }
+  .auth-field label{
+    display:block; font-size:11px; text-transform:uppercase; letter-spacing:1px;
+    color: var(--ink-soft); margin-bottom:5px;
+  }
+  .auth-field input{
+    width:100%; background:transparent; border:none;
+    border-bottom: 1.5px solid rgba(38,51,38,0.35);
+    font-family:'Courier Prime', monospace; font-size:15px; color: var(--ink);
+    padding: 6px 2px;
+  }
+  .auth-field input:focus{ outline:none; border-bottom-color: var(--gold-dim); }
+  .auth-error{
+    font-size:12.5px; color: var(--pending); margin: -6px 0 14px; min-height:1px;
+  }
+  .auth-actions{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+  .auth-btn{
+    padding: 13px; border-radius:8px; border:none; font-size:15px; font-weight:600;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .auth-btn.primary{ background: var(--gold-dim); color:#fff8ec; }
+  .auth-btn.secondary{ background:transparent; color: var(--ink-soft); border:1.5px solid rgba(38,51,38,0.2); }
+  .auth-skip{
+    text-align:center; margin-top:16px; font-size:12.5px; color: var(--ink-soft);
+    text-decoration: underline; cursor:pointer;
+  }
+  .auth-loading{ font-size:12.5px; color: var(--ink-soft); text-align:center; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -381,6 +465,7 @@
     <div class="folio" id="folio">Fl. 001</div>
     <h2 id="mesLabel">—</h2>
     <div class="subtitle">quem me deve, quem já pagou</div>
+    <div class="account-bar" id="accountBar"></div>
   </header>
 
   <main>
@@ -399,6 +484,30 @@
   </main>
 </div>
 
+<div id="authScreen">
+  <div class="auth-sheet">
+    <h2 id="authTitle">Assine para sincronizar</h2>
+    <div class="sub">Use o mesmo e-mail e senha dos seus outros apps para manter a caderneta em todos os aparelhos.</div>
+    <form id="authForm">
+      <div class="auth-field">
+        <label for="authEmail">E-mail</label>
+        <input type="email" id="authEmail" autocomplete="username" required>
+      </div>
+      <div class="auth-field">
+        <label for="authSenha">Senha</label>
+        <input type="password" id="authSenha" autocomplete="current-password" required>
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <div class="auth-actions">
+        <button type="submit" class="auth-btn primary" id="btnEntrar">Entrar</button>
+        <button type="button" class="auth-btn secondary" id="btnCriarConta">Criar conta</button>
+      </div>
+    </form>
+    <div class="auth-skip" id="btnSkip">Continuar sem conta (só neste aparelho)</div>
+    <div class="auth-loading" id="authLoading" style="display:none;">conectando…</div>
+  </div>
+</div>
+
 <script>
 const STORAGE_KEY = 'caderneta_pessoas';
 const MONTH_KEY = 'caderneta_mes';
@@ -407,12 +516,26 @@ const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Ag
 let pessoas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 let openRowId = null; // null | 'new' | person.id
 
+// ---- Cloud sync state ----
+const UPDATED_KEY = 'caderneta_updatedAt';
+const GUEST_KEY = 'caderneta_guest';
+let currentUser = null;
+let lastPushedAt = 0;
+let pushTimer = null;
+let coverAlreadyOpened = false;
+
 // ---- Cover open ----
 const coverWrap = document.getElementById('coverWrap');
 document.getElementById('cover').addEventListener('click', openCover);
 function openCover(){
   coverWrap.classList.add('opening');
-  setTimeout(() => coverWrap.classList.add('opened'), 850);
+  setTimeout(() => {
+    coverWrap.classList.add('opened');
+    coverAlreadyOpened = true;
+    if (!currentUser && !localStorage.getItem(GUEST_KEY)){
+      openAuthScreen();
+    }
+  }, 850);
 }
 
 // ---- Month rollover ----
@@ -434,8 +557,155 @@ function checkMonthRollover(){
 }
 
 function formatMoney(v){ return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' }); }
-function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(pessoas)); }
+function persist(){
+  const ts = Date.now();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pessoas));
+  localStorage.setItem(UPDATED_KEY, String(ts));
+  scheduleCloudPush(ts);
+}
 function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+// ---- Cloud push (debounced) ----
+function scheduleCloudPush(ts){
+  if (!currentUser || !window.CloudSync) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    const payload = { pessoas, mes: localStorage.getItem(MONTH_KEY), updatedAt: ts };
+    lastPushedAt = ts;
+    window.CloudSync.salvarNaNuvem(currentUser.uid, { caderneta: payload }).catch(err => {
+      console.error('Falha ao sincronizar:', err);
+    });
+  }, 600);
+}
+
+function traduzErroAuth(err){
+  const code = err && err.code || '';
+  const mapa = {
+    'auth/invalid-email': 'E-mail inválido.',
+    'auth/user-not-found': 'Não encontramos essa conta.',
+    'auth/wrong-password': 'Senha incorreta.',
+    'auth/invalid-credential': 'E-mail ou senha incorretos.',
+    'auth/email-already-in-use': 'Esse e-mail já tem uma conta — tente entrar.',
+    'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
+    'auth/too-many-requests': 'Muitas tentativas. Aguarde um pouco e tente de novo.',
+    'auth/network-request-failed': 'Sem conexão com a internet.'
+  };
+  return mapa[code] || 'Não foi possível concluir. Tente novamente.';
+}
+
+function renderAccountBar(){
+  const bar = document.getElementById('accountBar');
+  if (currentUser){
+    bar.innerHTML = `<span class="sync-dot"></span><span class="who">${escapeHtml(currentUser.email)}</span><button id="btnSair">sair</button>`;
+    document.getElementById('btnSair').addEventListener('click', () => window.CloudSync.logout());
+  } else {
+    bar.innerHTML = `<span class="sync-dot off"></span><span class="who">só neste aparelho</span><button id="btnAbrirLogin">sincronizar</button>`;
+    document.getElementById('btnAbrirLogin').addEventListener('click', () => openAuthScreen());
+  }
+}
+
+function openAuthScreen(){
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authScreen').classList.add('open');
+}
+function closeAuthScreen(){
+  document.getElementById('authScreen').classList.remove('open');
+}
+
+function mergeFromCloud(cloudData){
+  pessoas = cloudData.pessoas || [];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pessoas));
+  if (cloudData.updatedAt) localStorage.setItem(UPDATED_KEY, String(cloudData.updatedAt));
+  if (cloudData.mes) localStorage.setItem(MONTH_KEY, cloudData.mes);
+  checkMonthRollover();
+  render();
+}
+
+function setupCloudSync(){
+  if (!window.CloudSync) return;
+
+  window.CloudSync.onAuthStateChanged(async (user) => {
+    currentUser = user;
+    renderAccountBar();
+
+    if (user){
+      closeAuthScreen();
+      localStorage.removeItem(GUEST_KEY);
+      try{
+        const remote = await window.CloudSync.buscarDaNuvem(user.uid);
+        const remoteC = remote && remote.caderneta;
+        const localTs = parseInt(localStorage.getItem(UPDATED_KEY) || '0', 10);
+        if (remoteC && (remoteC.updatedAt || 0) > localTs){
+          mergeFromCloud(remoteC);
+        } else if (pessoas.length){
+          persist(); // manda a versão local (mais nova) pra nuvem
+        }
+      } catch(err){
+        console.error('Erro ao buscar dados na nuvem:', err);
+      }
+
+      window.CloudSync.ouvirMudancas(user.uid, (data) => {
+        const c = data.caderneta;
+        if (!c || !c.updatedAt) return;
+        if (c.updatedAt === lastPushedAt) return; // eco do próprio envio
+        const localTs = parseInt(localStorage.getItem(UPDATED_KEY) || '0', 10);
+        if (c.updatedAt > localTs) mergeFromCloud(c);
+      });
+    } else {
+      window.CloudSync.pararDeOuvir();
+    }
+  });
+
+  document.getElementById('authForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('authEmail').value.trim();
+    const senha = document.getElementById('authSenha').value;
+    const errEl = document.getElementById('authError');
+    errEl.textContent = '';
+    document.getElementById('authLoading').style.display = 'block';
+    try{
+      await window.CloudSync.login(email, senha);
+    } catch(err){
+      errEl.textContent = traduzErroAuth(err);
+    } finally {
+      document.getElementById('authLoading').style.display = 'none';
+    }
+  });
+
+  document.getElementById('btnCriarConta').addEventListener('click', async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const senha = document.getElementById('authSenha').value;
+    const errEl = document.getElementById('authError');
+    errEl.textContent = '';
+    if (!email || senha.length < 6){
+      errEl.textContent = 'Preencha e-mail e uma senha com pelo menos 6 caracteres.';
+      return;
+    }
+    document.getElementById('authLoading').style.display = 'block';
+    try{
+      await window.CloudSync.cadastrar(email, senha);
+    } catch(err){
+      errEl.textContent = traduzErroAuth(err);
+    } finally {
+      document.getElementById('authLoading').style.display = 'none';
+    }
+  });
+
+  document.getElementById('btnSkip').addEventListener('click', () => {
+    localStorage.setItem(GUEST_KEY, '1');
+    closeAuthScreen();
+  });
+
+  document.getElementById('authScreen').addEventListener('click', (e) => {
+    if (e.target.id === 'authScreen'){
+      localStorage.setItem(GUEST_KEY, '1');
+      closeAuthScreen();
+    }
+  });
+}
+window.addEventListener('cloudsync-pronto', setupCloudSync);
+// fallback: se o módulo já tiver carregado antes deste script rodar
+if (window.CloudSync) setupCloudSync();
 
 function toggleStatus(id){
   const p = pessoas.find(p => p.id === id);
@@ -565,7 +835,18 @@ function render(){
 
 checkMonthRollover();
 render();
+renderAccountBar();
+
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.error('Falha ao registrar service worker:', err);
+    });
+  });
+}
 </script>
+
+<script type="module" src="firebase-sync.js"></script>
 
 </body>
 </html>
