@@ -366,28 +366,31 @@
   .empty h3{ font-family:'Special Elite', cursive; font-weight:normal; margin:0 0 4px; color:var(--ink); }
   .empty p{ font-size:13px; margin:0; }
 
-  /* ============ CONTA / SYNC ============ */
-  .account-bar{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--ink-soft);
+  /* ============ CONTA / SYNC — CHAVINHA DE CONFIG ============ */
+  .settings-fab{
+    position: fixed;
+    right: 18px;
+    bottom: 22px;
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 30% 25%, var(--leather-hi) 0%, transparent 60%), linear-gradient(155deg, var(--leather-2) 0%, var(--leather) 75%);
+    border: 2px solid var(--gold-dim);
+    color: var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    box-shadow: 0 5px 16px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.08);
+    z-index: 55;
+    transition: transform 0.35s cubic-bezier(.4,1.6,.5,1);
   }
-  .account-bar .material-symbols-outlined{ font-size:16px; }
-  .account-bar .who{ font-family:'Courier Prime', monospace; }
-  .account-bar button{
-    background:none; border:none; cursor:pointer;
-    font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
-    color: var(--gold-dim); padding: 2px 0; text-decoration: underline;
+  .settings-fab .material-symbols-outlined{ font-size:27px; }
+  .settings-fab:active{ transform: rotate(50deg) scale(0.94); }
+  .fab-dot{
+    position:absolute; top:1px; right:1px;
+    width:12px; height:12px; border-radius:50%;
+    background: rgba(230,215,190,0.35);
+    border: 2px solid var(--leather);
   }
-  .sync-dot{
-    width:7px; height:7px; border-radius:50%;
-    background: var(--paid);
-    flex-shrink:0;
-  }
-  .sync-dot.off{ background: rgba(87,97,77,0.4); }
+  .fab-dot.on{ background: var(--paid); }
 
   /* ============ AUTH SCREEN ============ */
   #authScreen{
@@ -443,6 +446,23 @@
     text-decoration: underline; cursor:pointer;
   }
   .auth-loading{ font-size:12.5px; color: var(--ink-soft); text-align:center; margin-top: 4px; }
+  .auth-close{
+    position:absolute; top:14px; right:16px;
+    width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--ink-soft); font-size:18px; line-height:1; cursor:pointer;
+  }
+  .auth-close:active{ background: rgba(38,51,38,0.1); }
+  .account-info{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Courier Prime', monospace;
+    font-size: 14.5px; color: var(--ink);
+    margin: 6px 0 22px;
+    padding: 12px 2px;
+    border-top: 1px dashed rgba(38,51,38,0.25);
+    border-bottom: 1px dashed rgba(38,51,38,0.25);
+  }
+  .account-info .material-symbols-outlined{ font-size:24px; color: var(--gold-dim); }
 </style>
 </head>
 <body>
@@ -465,7 +485,6 @@
     <div class="folio" id="folio">Fl. 001</div>
     <h2 id="mesLabel">—</h2>
     <div class="subtitle">quem me deve, quem já pagou</div>
-    <div class="account-bar" id="accountBar"></div>
   </header>
 
   <main>
@@ -484,27 +503,48 @@
   </main>
 </div>
 
+<button id="settingsFab" class="settings-fab" title="Conta e sincronização">
+  <span class="fab-dot" id="fabDot"></span>
+  <span class="material-symbols-outlined">settings</span>
+</button>
+
 <div id="authScreen">
   <div class="auth-sheet">
-    <h2 id="authTitle">Assine para sincronizar</h2>
-    <div class="sub">Use o mesmo e-mail e senha dos seus outros apps para manter a caderneta em todos os aparelhos.</div>
-    <form id="authForm">
-      <div class="auth-field">
-        <label for="authEmail">E-mail</label>
-        <input type="email" id="authEmail" autocomplete="username" required>
+    <div class="auth-close" id="authClose">✕</div>
+
+    <div id="authLoggedOut">
+      <h2 id="authTitle">Assine para sincronizar</h2>
+      <div class="sub">Use o mesmo e-mail e senha dos seus outros apps para manter a caderneta em todos os aparelhos.</div>
+      <form id="authForm">
+        <div class="auth-field">
+          <label for="authEmail">E-mail</label>
+          <input type="email" id="authEmail" autocomplete="username" required>
+        </div>
+        <div class="auth-field">
+          <label for="authSenha">Senha</label>
+          <input type="password" id="authSenha" autocomplete="current-password" required>
+        </div>
+        <div class="auth-error" id="authError"></div>
+        <div class="auth-actions">
+          <button type="submit" class="auth-btn primary" id="btnEntrar">Entrar</button>
+          <button type="button" class="auth-btn secondary" id="btnCriarConta">Criar conta</button>
+        </div>
+      </form>
+      <div class="auth-skip" id="btnSkip">Continuar sem conta (só neste aparelho)</div>
+      <div class="auth-loading" id="authLoading" style="display:none;">conectando…</div>
+    </div>
+
+    <div id="authLoggedIn" style="display:none;">
+      <h2>Sua conta</h2>
+      <div class="sub">A caderneta está sincronizada nesta conta.</div>
+      <div class="account-info">
+        <span class="material-symbols-outlined">account_circle</span>
+        <span class="who" id="authWho"></span>
       </div>
-      <div class="auth-field">
-        <label for="authSenha">Senha</label>
-        <input type="password" id="authSenha" autocomplete="current-password" required>
-      </div>
-      <div class="auth-error" id="authError"></div>
       <div class="auth-actions">
-        <button type="submit" class="auth-btn primary" id="btnEntrar">Entrar</button>
-        <button type="button" class="auth-btn secondary" id="btnCriarConta">Criar conta</button>
+        <button type="button" class="auth-btn secondary" id="btnSairSheet">Sair da conta</button>
       </div>
-    </form>
-    <div class="auth-skip" id="btnSkip">Continuar sem conta (só neste aparelho)</div>
-    <div class="auth-loading" id="authLoading" style="display:none;">conectando…</div>
+    </div>
   </div>
 </div>
 
@@ -527,14 +567,12 @@ let coverAlreadyOpened = false;
 // ---- Cover open ----
 const coverWrap = document.getElementById('coverWrap');
 document.getElementById('cover').addEventListener('click', openCover);
+document.getElementById('settingsFab').addEventListener('click', openAuthScreen);
 function openCover(){
   coverWrap.classList.add('opening');
   setTimeout(() => {
     coverWrap.classList.add('opened');
     coverAlreadyOpened = true;
-    if (!currentUser && !localStorage.getItem(GUEST_KEY)){
-      openAuthScreen();
-    }
   }, 850);
 }
 
@@ -593,19 +631,28 @@ function traduzErroAuth(err){
   return mapa[code] || 'Não foi possível concluir. Tente novamente.';
 }
 
-function renderAccountBar(){
-  const bar = document.getElementById('accountBar');
+function updateFab(){
+  const dot = document.getElementById('fabDot');
+  if (dot) dot.classList.toggle('on', !!currentUser);
+  if (document.getElementById('authScreen').classList.contains('open')) renderAuthSheet();
+}
+
+function renderAuthSheet(){
+  const loggedOut = document.getElementById('authLoggedOut');
+  const loggedIn = document.getElementById('authLoggedIn');
   if (currentUser){
-    bar.innerHTML = `<span class="sync-dot"></span><span class="who">${escapeHtml(currentUser.email)}</span><button id="btnSair">sair</button>`;
-    document.getElementById('btnSair').addEventListener('click', () => window.CloudSync.logout());
+    loggedOut.style.display = 'none';
+    loggedIn.style.display = 'block';
+    document.getElementById('authWho').textContent = currentUser.email;
   } else {
-    bar.innerHTML = `<span class="sync-dot off"></span><span class="who">só neste aparelho</span><button id="btnAbrirLogin">sincronizar</button>`;
-    document.getElementById('btnAbrirLogin').addEventListener('click', () => openAuthScreen());
+    loggedOut.style.display = 'block';
+    loggedIn.style.display = 'none';
   }
 }
 
 function openAuthScreen(){
   document.getElementById('authError').textContent = '';
+  renderAuthSheet();
   document.getElementById('authScreen').classList.add('open');
 }
 function closeAuthScreen(){
@@ -626,7 +673,7 @@ function setupCloudSync(){
 
   window.CloudSync.onAuthStateChanged(async (user) => {
     currentUser = user;
-    renderAccountBar();
+    updateFab();
 
     if (user){
       closeAuthScreen();
@@ -696,9 +743,16 @@ function setupCloudSync(){
     closeAuthScreen();
   });
 
+  document.getElementById('btnSairSheet').addEventListener('click', () => {
+    window.CloudSync.logout();
+    closeAuthScreen();
+  });
+
+  document.getElementById('authClose').addEventListener('click', closeAuthScreen);
+
   document.getElementById('authScreen').addEventListener('click', (e) => {
     if (e.target.id === 'authScreen'){
-      localStorage.setItem(GUEST_KEY, '1');
+      if (!currentUser) localStorage.setItem(GUEST_KEY, '1');
       closeAuthScreen();
     }
   });
@@ -835,7 +889,7 @@ function render(){
 
 checkMonthRollover();
 render();
-renderAccountBar();
+updateFab();
 
 if ('serviceWorker' in navigator){
   window.addEventListener('load', () => {
