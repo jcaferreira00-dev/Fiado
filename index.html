@@ -392,6 +392,12 @@
   }
   .fab-dot.on{ background: var(--paid); }
 
+  .hide-fab{
+    left: 18px;
+    right: auto;
+  }
+  .hide-fab .material-symbols-outlined{ font-size: 25px; }
+
   /* ============ AUTH SCREEN ============ */
   #authScreen{
     position: fixed;
@@ -508,6 +514,10 @@
   <span class="material-symbols-outlined">settings</span>
 </button>
 
+<button id="hideFab" class="settings-fab hide-fab" title="Ocultar informações">
+  <span class="material-symbols-outlined">visibility</span>
+</button>
+
 <div id="authScreen">
   <div class="auth-sheet">
     <div class="auth-close" id="authClose">✕</div>
@@ -568,12 +578,24 @@ let coverAlreadyOpened = false;
 const coverWrap = document.getElementById('coverWrap');
 document.getElementById('cover').addEventListener('click', openCover);
 document.getElementById('settingsFab').addEventListener('click', openAuthScreen);
+document.getElementById('hideFab').addEventListener('click', closeCover);
 function openCover(){
   coverWrap.classList.add('opening');
   setTimeout(() => {
     coverWrap.classList.add('opened');
     coverAlreadyOpened = true;
   }, 850);
+}
+function closeCover(){
+  // fecha qualquer edição/tela aberta antes de esconder tudo
+  openRowId = null;
+  closeAuthScreen();
+  render();
+
+  coverWrap.classList.remove('opened'); // volta a ficar visível (display flex)
+  void coverWrap.offsetWidth; // força reflow pra garantir a transição
+  coverWrap.classList.remove('opening'); // anima de volta pra capa fechada
+  coverAlreadyOpened = false;
 }
 
 // ---- Month rollover ----
