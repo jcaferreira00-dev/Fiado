@@ -129,6 +129,7 @@
     position: relative;
     padding-bottom: 40px;
     box-shadow: 0 0 40px rgba(0,0,0,0.3);
+    perspective: 1400px;
   }
 
   /* grain */
@@ -169,6 +170,58 @@
     background: var(--rule-red);
     opacity: 0.3;
   }
+
+  /* ============ NAVEGAÇÃO DE MÊS / VIRAR FOLHA ============ */
+  #pageArea{
+    position: relative;
+    transform-origin: left center;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+  @keyframes pageOutNext{
+    from{ transform: rotateY(0deg) translateX(0); opacity: 1; }
+    to{ transform: rotateY(-16deg) translateX(-14px); opacity: 0; }
+  }
+  @keyframes pageOutPrev{
+    from{ transform: rotateY(0deg) translateX(0); opacity: 1; }
+    to{ transform: rotateY(16deg) translateX(14px); opacity: 0; }
+  }
+  @keyframes pageInNext{
+    from{ transform: rotateY(16deg) translateX(14px); opacity: 0; }
+    to{ transform: rotateY(0deg) translateX(0); opacity: 1; }
+  }
+  @keyframes pageInPrev{
+    from{ transform: rotateY(-16deg) translateX(-14px); opacity: 0; }
+    to{ transform: rotateY(0deg) translateX(0); opacity: 1; }
+  }
+  #pageArea.flip-out-next{ animation: pageOutNext 0.2s ease forwards; }
+  #pageArea.flip-out-prev{ animation: pageOutPrev 0.2s ease forwards; }
+  #pageArea.flip-in-next{ animation: pageInNext 0.24s ease forwards; }
+  #pageArea.flip-in-prev{ animation: pageInPrev 0.24s ease forwards; }
+
+  .mes-nav{
+    display:flex;
+    align-items:center;
+    gap: 4px;
+  }
+  .mes-nav-btn{
+    background:none;
+    border:none;
+    padding:0;
+    cursor:pointer;
+    color: var(--gold-dim);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: background 0.15s, opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mes-nav-btn .material-symbols-outlined{ font-size: 22px; }
+  .mes-nav-btn:active{ background: rgba(38,51,38,0.1); }
+  .mes-nav-btn:disabled{ opacity: 0.25; cursor: default; }
+  .mes-nav-btn:disabled:active{ background: none; }
 
   header{
     padding: 28px 22px 18px 74px;
@@ -487,26 +540,36 @@
   <div class="dogear"></div>
   <div class="margin-rule"></div>
 
-  <header>
-    <div class="folio" id="folio">Fl. 001</div>
-    <h2 id="mesLabel">—</h2>
-    <div class="subtitle">quem me deve, quem já pagou</div>
-  </header>
+  <div id="pageArea">
+    <header>
+      <div class="folio" id="folio">Fl. 001</div>
+      <div class="mes-nav">
+        <button type="button" class="mes-nav-btn" id="mesPrev" title="Mês anterior" aria-label="Mês anterior">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <h2 id="mesLabel">—</h2>
+        <button type="button" class="mes-nav-btn" id="mesNext" title="Próximo mês" aria-label="Próximo mês">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+      <div class="subtitle">quem me deve, quem já pagou</div>
+    </header>
 
-  <main>
-    <div class="list" id="list"></div>
-    <div class="empty" id="empty" style="display:none;">
-      <span class="material-symbols-outlined">menu_book</span>
-      <h3>Página em branco</h3>
-      <p>Anote a primeira pessoa abaixo.</p>
-    </div>
+    <main>
+      <div class="list" id="list"></div>
+      <div class="empty" id="empty" style="display:none;">
+        <span class="material-symbols-outlined">menu_book</span>
+        <h3>Página em branco</h3>
+        <p>Anote a primeira pessoa abaixo.</p>
+      </div>
 
-    <div class="totals">
-      <div class="trow recebido-row"><span>Recebido</span><span id="statRecebido">R$ 0,00</span></div>
-      <div class="trow pendente-row"><span>Pendente</span><span id="statPendente">R$ 0,00</span></div>
-      <div class="trow saldo"><span>Total mensal</span><span id="statTotal">R$ 0,00</span></div>
-    </div>
-  </main>
+      <div class="totals">
+        <div class="trow recebido-row"><span>Recebido</span><span id="statRecebido">R$ 0,00</span></div>
+        <div class="trow pendente-row"><span>Pendente</span><span id="statPendente">R$ 0,00</span></div>
+        <div class="trow saldo"><span>Total mensal</span><span id="statTotal">R$ 0,00</span></div>
+      </div>
+    </main>
+  </div>
 </div>
 
 <button id="settingsFab" class="settings-fab" title="Conta e sincronização">
@@ -559,11 +622,26 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'caderneta_pessoas';
+const STORAGE_KEY = 'caderneta_pessoas'; // legado (formato antigo, sem histórico por mês)
+const DADOS_KEY = 'caderneta_dados'; // novo formato: { 'AAAA-MM': pessoas[] }
 const MONTH_KEY = 'caderneta_mes';
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-let pessoas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+function currentMonthKey(d = new Date()){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function addMeses(chave, delta){
+  const [ano, mes] = chave.split('-').map(Number);
+  return currentMonthKey(new Date(ano, (mes - 1) + delta, 1));
+}
+
+let dados = JSON.parse(localStorage.getItem(DADOS_KEY) || 'null');
+if (!dados){
+  // migra o formato antigo (uma lista só) pra dentro do novo formato com histórico
+  const legado = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  dados = { [localStorage.getItem(MONTH_KEY) || currentMonthKey()]: legado };
+}
+
+let viewedMonthKey = currentMonthKey();
+let pessoas = dados[viewedMonthKey] || (dados[viewedMonthKey] = []);
 let openRowId = null; // null | 'new' | person.id
 
 // ---- Cloud sync state ----
@@ -599,27 +677,108 @@ function closeCover(){
 }
 
 // ---- Month rollover ----
-function currentMonthKey(d = new Date()){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function checkMonthRollover(){
   const stored = localStorage.getItem(MONTH_KEY);
   const now = currentMonthKey();
   if (stored && stored !== now){
-    pessoas.forEach(p => {
-      if (p.status === 'pendente'){ p.divida = (p.divida || 0) + p.valor; }
-      p.status = 'pendente';
-    });
-    persist();
+    // avança mês a mês desde a última vez que o app foi aberto, carregando
+    // pendências como dívida e preservando cada mês fechado como histórico
+    let cursor = stored;
+    while (cursor !== now && dados[cursor]){
+      const proximo = addMeses(cursor, 1);
+      if (!dados[proximo]){
+        dados[proximo] = dados[cursor]
+          .filter(p => p.status !== 'pago') // pagas não passam pro mês seguinte
+          .map(p => ({ ...p })); // pendentes seguem exatamente como estão, sem acumular
+      }
+      cursor = proximo;
+    }
+    localStorage.setItem(DADOS_KEY, JSON.stringify(dados));
+    if (viewedMonthKey === stored) viewedMonthKey = now;
   }
   localStorage.setItem(MONTH_KEY, now);
-  const d = new Date();
-  document.getElementById('mesLabel').textContent = `${MESES[d.getMonth()]} ${d.getFullYear()}`;
-  document.getElementById('folio').textContent = `Fl. ${String(d.getMonth()+1).padStart(3,'0')}`;
 }
 
+function isMesAtual(chave){ return chave === currentMonthKey(); }
+
+function atualizarCabecalhoMes(){
+  const [ano, mesNum] = viewedMonthKey.split('-').map(Number);
+  document.getElementById('mesLabel').textContent = `${MESES[mesNum - 1]} ${ano}`;
+  document.getElementById('folio').textContent = `Fl. ${String(mesNum).padStart(3,'0')}${isMesAtual(viewedMonthKey) ? '' : ' · mês encerrado'}`;
+  document.getElementById('mesNext').disabled = isMesAtual(viewedMonthKey);
+}
+
+function irParaMes(delta){
+  const destino = addMeses(viewedMonthKey, delta);
+  if (delta > 0 && destino > currentMonthKey()) return; // não abre páginas futuras
+  const pageArea = document.getElementById('pageArea');
+  pageArea.classList.add(delta > 0 ? 'flip-out-next' : 'flip-out-prev');
+  setTimeout(() => {
+    viewedMonthKey = destino;
+    pessoas = dados[viewedMonthKey] || (dados[viewedMonthKey] = []);
+    openRowId = null;
+    atualizarCabecalhoMes();
+    render();
+    pageArea.classList.remove('flip-out-next', 'flip-out-prev');
+    pageArea.classList.add(delta > 0 ? 'flip-in-next' : 'flip-in-prev');
+    setTimeout(() => pageArea.classList.remove('flip-in-next', 'flip-in-prev'), 260);
+  }, 200);
+}
+
+document.getElementById('mesPrev').addEventListener('click', () => irParaMes(-1));
+document.getElementById('mesNext').addEventListener('click', () => irParaMes(1));
+
+// swipe horizontal também vira a folha
+(function(){
+  const pageArea = document.getElementById('pageArea');
+  let startX = null, startY = null;
+  pageArea.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  pageArea.addEventListener('touchend', (e) => {
+    if (startX === null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5){
+      irParaMes(dx < 0 ? 1 : -1);
+    }
+    startX = null; startY = null;
+  }, { passive: true });
+})();
+
 function formatMoney(v){ return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' }); }
+
+function formatVencimento(iso){
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  const venc = new Date(y, m - 1, d);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const diffDias = Math.round((venc - hoje) / 86400000);
+  const dataFmt = venc.toLocaleDateString('pt-BR');
+
+  function unidade(qtd, singular, plural){ return `${qtd} ${qtd === 1 ? singular : plural}`; }
+
+  let relativo;
+  if (diffDias === 0) relativo = 'vence hoje';
+  else if (diffDias === 1) relativo = 'vence amanhã';
+  else if (diffDias === -1) relativo = 'venceu ontem';
+  else if (diffDias > 0){
+    if (diffDias < 30) relativo = `vence em ${unidade(diffDias, 'dia', 'dias')}`;
+    else if (diffDias < 365) relativo = `vence daqui a ${unidade(Math.round(diffDias/30), 'mês', 'meses')}`;
+    else relativo = `vence daqui a ${unidade(Math.round(diffDias/365), 'ano', 'anos')}`;
+  } else {
+    const atras = Math.abs(diffDias);
+    if (atras < 30) relativo = `venceu há ${unidade(atras, 'dia', 'dias')}`;
+    else if (atras < 365) relativo = `venceu há ${unidade(Math.round(atras/30), 'mês', 'meses')}`;
+    else relativo = `venceu há ${unidade(Math.round(atras/365), 'ano', 'anos')}`;
+  }
+  return `${relativo} (${dataFmt})`;
+}
 function persist(){
   const ts = Date.now();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pessoas));
+  dados[viewedMonthKey] = pessoas;
+  localStorage.setItem(DADOS_KEY, JSON.stringify(dados));
   localStorage.setItem(UPDATED_KEY, String(ts));
   scheduleCloudPush(ts);
 }
@@ -630,7 +789,7 @@ function scheduleCloudPush(ts){
   if (!currentUser || !window.CloudSync) return;
   clearTimeout(pushTimer);
   pushTimer = setTimeout(() => {
-    const payload = { pessoas, mes: localStorage.getItem(MONTH_KEY), updatedAt: ts };
+    const payload = { dados, mes: localStorage.getItem(MONTH_KEY), updatedAt: ts };
     lastPushedAt = ts;
     window.CloudSync.salvarNaNuvem(currentUser.uid, { caderneta: payload }).catch(err => {
       console.error('Falha ao sincronizar:', err);
@@ -682,11 +841,22 @@ function closeAuthScreen(){
 }
 
 function mergeFromCloud(cloudData){
-  pessoas = cloudData.pessoas || [];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pessoas));
+  if (cloudData.dados){
+    dados = cloudData.dados;
+  } else if (cloudData.pessoas){
+    // compatibilidade com dados sincronizados no formato antigo
+    dados = { [cloudData.mes || currentMonthKey()]: cloudData.pessoas };
+  } else {
+    dados = {};
+  }
+  localStorage.setItem(DADOS_KEY, JSON.stringify(dados));
   if (cloudData.updatedAt) localStorage.setItem(UPDATED_KEY, String(cloudData.updatedAt));
   if (cloudData.mes) localStorage.setItem(MONTH_KEY, cloudData.mes);
   checkMonthRollover();
+  viewedMonthKey = currentMonthKey();
+  pessoas = dados[viewedMonthKey] || (dados[viewedMonthKey] = []);
+  openRowId = null;
+  atualizarCabecalhoMes();
   render();
 }
 
@@ -807,7 +977,7 @@ function focusForm(){
 function saveForm(id){
   const nome = document.getElementById('editName').value.trim();
   const valor = parseFloat(document.getElementById('editValor').value);
-  const dia = parseInt(document.getElementById('editDia').value) || null;
+  const vencimento = document.getElementById('editVencimento').value || null;
 
   if (!nome || isNaN(valor) || valor <= 0){
     alert('Preencha o nome e um valor mensal válido.');
@@ -815,10 +985,10 @@ function saveForm(id){
   }
 
   if (id === 'new'){
-    pessoas.push({ id: Date.now().toString(), nome, valor, dia, status:'pendente', totalRecebido:0, divida:0 });
+    pessoas.push({ id: Date.now().toString(), nome, valor, vencimento, status:'pendente', totalRecebido:0, divida:0 });
   } else {
     const p = pessoas.find(p => p.id === id);
-    p.nome = nome; p.valor = valor; p.dia = dia;
+    p.nome = nome; p.valor = valor; p.vencimento = vencimento;
   }
   persist();
   openRowId = null;
@@ -835,12 +1005,13 @@ function deleteForm(id){
 
 function rowNormal(p, idx){
   const dividaTxt = p.divida > 0 ? ` · dívida anterior ${formatMoney(p.divida)}` : '';
+  const vencTxt = p.vencimento ? ` · ${formatVencimento(p.vencimento)}` : '';
   return `
     <div class="row" data-id="${p.id}">
       <div class="ink-num">${String(idx+1).padStart(2,'0')}</div>
       <div class="info">
         <div class="name">${escapeHtml(p.nome)}</div>
-        <div class="meta">${formatMoney(p.valor)}/mês${p.dia ? ' · vence dia '+p.dia : ''}${dividaTxt}</div>
+        <div class="meta">${formatMoney(p.valor)}${vencTxt}${dividaTxt}</div>
       </div>
       <div class="status-zone">
         ${p.status === 'pago' ? '<div class="stamp">Pago</div>' : '<div class="pendente-txt">pendente</div>'}
@@ -861,7 +1032,7 @@ function rowEdit(p){
   const isNew = p === null;
   const nome = isNew ? '' : p.nome;
   const valor = isNew ? '' : p.valor;
-  const dia = isNew ? '' : (p.dia || '');
+  const vencimento = isNew ? '' : (p.vencimento || '');
   const id = isNew ? 'new' : p.id;
   return `
     <div class="row row-edit">
@@ -869,7 +1040,7 @@ function rowEdit(p){
         <input class="ledger-input name-input" id="editName" placeholder="Nome da pessoa" value="${escapeHtml(nome)}">
         <div class="edit-line-2">
           <div class="grp"><label>R$</label><input class="ledger-input" id="editValor" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" value="${valor}"></div>
-          <div class="grp"><label>Dia</label><input class="ledger-input" id="editDia" type="number" min="1" max="31" placeholder="—" value="${dia}"></div>
+          <div class="grp"><label>Vencimento</label><input class="ledger-input" id="editVencimento" type="date" value="${vencimento}"></div>
         </div>
         <div class="edit-actions">
           <button class="btn-cancel" data-action="cancel">Cancelar</button>
@@ -910,6 +1081,8 @@ function render(){
 }
 
 checkMonthRollover();
+pessoas = dados[viewedMonthKey] || (dados[viewedMonthKey] = []);
+atualizarCabecalhoMes();
 render();
 updateFab();
 
