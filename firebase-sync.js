@@ -3,10 +3,9 @@
 // Este arquivo não mexe na lógica do app (script principal).
 // Ele só expõe window.CloudSync com funções prontas pra usar.
 //
-// Mesmo esquema usado no Patrimônio / Controle Financeiro / ContasdoMes.
-// Única diferença: salvarNaNuvem usa { merge: true }, para que o
-// documento do usuário (compartilhado entre todos os apps) não seja
-// sobrescrito por inteiro — cada app grava só a sua própria chave.
+// Cada app da mesma conta Firebase usa sua própria coleção no
+// Firestore (veja referenciaDoUsuario abaixo), então não há mais
+// risco de um app sobrescrever os dados de outro.
 // =====================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -55,7 +54,9 @@ try {
 let pararDeOuvirSnapshot = null;
 
 function referenciaDoUsuario(uid) {
-  return doc(db, "usuarios", uid);
+  // Coleção exclusiva deste app — cada app da mesma conta Firebase
+  // deve usar seu próprio nome de coleção aqui pra não sobrescrever os outros.
+  return doc(db, "fiado_usuarios", uid);
 }
 
 // ===========================
@@ -81,9 +82,7 @@ window.CloudSync = {
   },
 
   async salvarNaNuvem(uid, dados) {
-    // merge:true -> grava só as chaves passadas em "dados",
-    // sem apagar campos de outros apps que dividem o mesmo documento.
-    await setDoc(referenciaDoUsuario(uid), dados, { merge: true });
+    await setDoc(referenciaDoUsuario(uid), dados);
   },
 
   async buscarDaNuvem(uid) {
