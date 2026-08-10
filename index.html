@@ -360,10 +360,10 @@
   }
   .ledger-input:focus{ outline:none; border-bottom-color: var(--gold-dim); }
   .ledger-input.name-input{ font-family:'Inter',sans-serif; font-weight:600; font-size:16px; }
-  .edit-line-2{ display:flex; gap: 14px; }
-  .edit-line-2 .grp{ display:flex; align-items:center; gap:6px; flex:1; min-width:0; }
-  .edit-line-2 label{ font-size:11px; color: var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; flex-shrink:0; }
-  .edit-line-2 .ledger-input{ min-width:0; }
+  .edit-line-2{ display:flex; flex-wrap: wrap; gap: 10px 14px; }
+  .edit-line-2 .grp{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; flex: 1 1 128px; min-width:0; max-width:100%; }
+  .edit-line-2 label{ font-size:11px; color: var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; }
+  .edit-line-2 .ledger-input{ width:100%; min-width:0; max-width:100%; }
   .edit-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:2px; }
   .edit-actions button{
     border:none; border-radius:6px; padding: 8px 14px;
@@ -420,37 +420,38 @@
   .empty h3{ font-family:'Special Elite', cursive; font-weight:normal; margin:0 0 4px; color:var(--ink); }
   .empty p{ font-size:13px; margin:0; }
 
-  /* ============ CONTA / SYNC — CHAVINHA DE CONFIG ============ */
-  .settings-fab{
-    position: fixed;
-    right: 18px;
-    bottom: 22px;
-    width: 54px; height: 54px;
+  /* ============ CONTA / SYNC — ÍCONES DISCRETOS NO TOPO ============ */
+  .top-tools{
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 55;
+    display:flex;
+    align-items:center;
+    gap: 4px;
+  }
+  .tool-btn{
+    position: relative;
+    width: 32px; height: 32px;
     border-radius: 50%;
-    background: radial-gradient(ellipse at 30% 25%, var(--leather-hi) 0%, transparent 60%), linear-gradient(155deg, var(--leather-2) 0%, var(--leather) 75%);
-    border: 2px solid var(--gold-dim);
-    color: var(--gold);
+    background: transparent;
+    border: none;
+    color: var(--ink-soft);
+    opacity: 0.6;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
-    box-shadow: 0 5px 16px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.08);
-    z-index: 55;
-    transition: transform 0.35s cubic-bezier(.4,1.6,.5,1);
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, opacity 0.15s;
   }
-  .settings-fab .material-symbols-outlined{ font-size:27px; }
-  .settings-fab:active{ transform: rotate(50deg) scale(0.94); }
+  .tool-btn .material-symbols-outlined{ font-size: 19px; }
+  .tool-btn:active{ background: rgba(38,51,38,0.1); opacity: 1; }
   .fab-dot{
-    position:absolute; top:1px; right:1px;
-    width:12px; height:12px; border-radius:50%;
-    background: rgba(230,215,190,0.35);
-    border: 2px solid var(--leather);
+    position:absolute; top:2px; right:2px;
+    width:8px; height:8px; border-radius:50%;
+    background: rgba(87,97,77,0.35);
+    border: 1.5px solid var(--paper);
   }
   .fab-dot.on{ background: var(--paid); }
-
-  .hide-fab{
-    left: 18px;
-    right: auto;
-  }
-  .hide-fab .material-symbols-outlined{ font-size: 25px; }
 
   /* ============ AUTH SCREEN ============ */
   #authScreen{
@@ -523,6 +524,20 @@
     border-bottom: 1px dashed rgba(38,51,38,0.25);
   }
   .account-info .material-symbols-outlined{ font-size:24px; color: var(--gold-dim); }
+
+  .backup-section{
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px dashed rgba(38,51,38,0.25);
+  }
+  .backup-title{
+    font-size:11px; text-transform:uppercase; letter-spacing:1px;
+    color: var(--ink-soft); margin-bottom:10px;
+  }
+  .backup-section .auth-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .backup-icon{ font-size:18px; }
 </style>
 </head>
 <body>
@@ -540,6 +555,16 @@
 <div id="app">
   <div class="dogear"></div>
   <div class="margin-rule"></div>
+
+  <div class="top-tools">
+    <button id="hideFab" class="tool-btn" title="Ocultar informações" aria-label="Ocultar informações">
+      <span class="material-symbols-outlined">visibility</span>
+    </button>
+    <button id="settingsFab" class="tool-btn" title="Conta e sincronização" aria-label="Conta e sincronização">
+      <span class="material-symbols-outlined">settings</span>
+      <span class="fab-dot" id="fabDot"></span>
+    </button>
+  </div>
 
   <div id="pageArea">
     <header>
@@ -572,15 +597,6 @@
     </main>
   </div>
 </div>
-
-<button id="settingsFab" class="settings-fab" title="Conta e sincronização">
-  <span class="fab-dot" id="fabDot"></span>
-  <span class="material-symbols-outlined">settings</span>
-</button>
-
-<button id="hideFab" class="settings-fab hide-fab" title="Ocultar informações">
-  <span class="material-symbols-outlined">visibility</span>
-</button>
 
 <div id="authScreen">
   <div class="auth-sheet">
@@ -618,6 +634,19 @@
       <div class="auth-actions">
         <button type="button" class="auth-btn secondary" id="btnSairSheet">Sair da conta</button>
       </div>
+    </div>
+
+    <div class="backup-section">
+      <div class="backup-title">Backup</div>
+      <div class="auth-actions">
+        <button type="button" class="auth-btn secondary" id="btnExportar">
+          <span class="material-symbols-outlined backup-icon">file_download</span>Exportar backup
+        </button>
+        <button type="button" class="auth-btn secondary" id="btnImportar">
+          <span class="material-symbols-outlined backup-icon">file_upload</span>Importar backup
+        </button>
+      </div>
+      <input type="file" id="inputImportar" accept="application/json,.json" style="display:none;">
     </div>
   </div>
 </div>
@@ -942,6 +971,57 @@ function setupCloudSync(){
   });
 
   document.getElementById('authClose').addEventListener('click', closeAuthScreen);
+
+document.getElementById('btnExportar').addEventListener('click', exportarBackup);
+document.getElementById('btnImportar').addEventListener('click', () => document.getElementById('inputImportar').click());
+document.getElementById('inputImportar').addEventListener('change', importarBackup);
+
+function exportarBackup(){
+  const payload = {
+    app: 'caderneta',
+    versao: 1,
+    exportadoEm: new Date().toISOString(),
+    dados
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const hoje = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `caderneta-backup-${hoje}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importarBackup(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const obj = JSON.parse(reader.result);
+      const novosDados = obj && obj.dados && typeof obj.dados === 'object' ? obj.dados : (obj && typeof obj === 'object' ? obj : null);
+      if (!novosDados || typeof novosDados !== 'object') throw new Error('formato inválido');
+      if (!confirm('Importar este backup vai substituir os dados atuais da caderneta neste aparelho. Continuar?')) return;
+      dados = novosDados;
+      checkMonthRollover();
+      viewedMonthKey = currentMonthKey();
+      pessoas = dados[viewedMonthKey] || (dados[viewedMonthKey] = []);
+      openRowId = null;
+      persist();
+      atualizarCabecalhoMes();
+      render();
+      alert('Backup importado com sucesso.');
+    } catch(err){
+      alert('Não foi possível importar esse arquivo. Verifique se é um backup válido da Caderneta.');
+    } finally {
+      e.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
 
   document.getElementById('authScreen').addEventListener('click', (e) => {
     if (e.target.id === 'authScreen'){
